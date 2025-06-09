@@ -3,7 +3,7 @@ FROM hardikparwana/cuda118desktop:ros-humble-rmf
 
 # WSL2-specific environment variables
 ENV DISPLAY=:0
-ENV LIBGL_ALWAYS_INDIRECT=1
+ENV LIBGL_ALWAYS_INDIRECT=0
 ENV WSL_DISTRO_NAME=Ubuntu
 
 RUN rm /var/lib/apt/lists/*ros*
@@ -30,16 +30,10 @@ RUN apt-get update && apt-get install -y \
     ros-humble-navigation2 \
     ros-humble-nav2-bringup \
     ros-humble-turtlebot3* \
-    ros-humble-nav2-simple-commander \
-    mesa-utils \
-    libglu1-mesa-dev \
-    libgl1-mesa-dri \
-    libgl1-mesa-glx \
-    freeglut3-dev \
-    mesa-common-dev \
-    nvidia-opencl-dev \
+    ros-humble-nav2-simple-commander \ 
+    ros-humble-rqt-tf-tree \
+    ros-humble-topic-tools \
     && rm -rf /var/lib/apt/lists/* 
-
 
 # Python setup
 RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10
