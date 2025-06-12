@@ -1,3 +1,6 @@
 [submodule "colcon_ws/src/social_navigation/social_navigation_py/social_navigation_py/SMrTa"]
     path = colcon_ws/src/social_navigation/social_navigation_py/social_navigation_py/SMrTa
     url = https://github.com/victoria-tuck/SMrTa-for-Simulation.git
+[submodule "colcon_ws/src/multi_robot_costmap_plugin"]
+	path = colcon_ws/src/multi_robot_costmap_plugin
+	url = https://github.com/FilippoGuarda/multi_robot_costmap_plugin.git
