@@ -1,0 +1,398 @@
+<?xml version="1.0"?>
+<robot name="turtlebot3_waffle" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <!-- Xacro properties -->
+  <xacro:arg name="namespace" default="" />
+  <xacro:property name="ns" value="$(arg namespace)" />
+  
+  <!-- Add namespace prefix if not empty -->
+  <xacro:macro name="add_namespace" params="name">
+    <xacro:if value="${ns != ''}">
+      <xacro:property name="namespaced_name" value="${name}" />
+    </xacro:if>
+    <xacro:unless value="${ns != ''}">
+      <xacro:property name="namespaced_name" value="${name}" />
+    </xacro:unless>
+    ${namespaced_name}
+  </xacro:macro>
+
+  <!-- Base footprint -->
+  <link name="base_footprint"/>
+
+  <!-- Base link -->
+  <link name="base_link">
+    <inertial>
+      <origin xyz="-0.064 0 0.048" rpy="0 0 0"/>
+      <mass value="1.0"/>
+      <inertia ixx="0.001" ixy="0.000" ixz="0.000"
+               iyy="0.001" iyz="0.000" izz="0.001"/>
+    </inertial>
+
+    <collision name="base_collision">
+      <origin xyz="-0.064 0 0.048" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.265 0.265 0.089"/>
+      </geometry>
+    </collision>
+
+    <visual name="base_visual">
+      <origin xyz="-0.064 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://turtlebot3_common/meshes/waffle_base.dae" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <!-- IMU link -->
+  <link name="imu_link">
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="0.001" ixy="0.000" ixz="0.000"
+               iyy="0.001" iyz="0.000" izz="0.001"/>
+    </inertial>
+  </link>
+
+  <!-- Lidar link -->
+  <link name="scan">
+    <inertial>
+      <origin xyz="-0.064 0 0.121" rpy="0 0 0"/>
+      <mass value="0.125"/>
+      <inertia ixx="0.001" ixy="0.000" ixz="0.000"
+               iyy="0.001" iyz="0.000" izz="0.001"/>
+    </inertial>
+
+    <collision name="lidar_sensor_collision">
+      <origin xyz="-0.052 0 0.111" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.0508" length="0.055"/>
+      </geometry>
+    </collision>
+
+    <visual name="lidar_sensor_visual">
+      <origin xyz="-0.064 0 0.121" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://turtlebot3_common/meshes/lds.dae" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <!-- Left wheel -->
+  <link name="wheel_left_link">
+    <inertial>
+      <origin xyz="0.0 0.144 0.023" rpy="-1.57 0 0"/>
+      <mass value="0.1"/>
+      <inertia ixx="0.001" ixy="0.000" ixz="0.000"
+               iyy="0.001" iyz="0.000" izz="0.001"/>
+    </inertial>
+
+    <collision name="wheel_left_collision">
+      <origin xyz="0.0 0.144 0.023" rpy="-1.57 0 0"/>
+      <geometry>
+        <cylinder radius="0.033" length="0.018"/>
+      </geometry>
+      <surface>
+        <friction>
+          <ode>
+            <mu>100000.0</mu>
+            <mu2>100000.0</mu2>
+            <fdir1>0 0 0</fdir1>
+            <slip1>0.0</slip1>
+            <slip2>0.0</slip2>
+          </ode>
+        </friction>
+      </surface>
+    </collision>
+
+    <visual name="wheel_left_visual">
+      <origin xyz="0.0 0.144 0.023" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://turtlebot3_common/meshes/tire.dae" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <!-- Right wheel -->
+  <link name="wheel_right_link">
+    <inertial>
+      <origin xyz="0.0 -0.144 0.023" rpy="-1.57 0 0"/>
+      <mass value="0.1"/>
+      <inertia ixx="0.001" ixy="0.000" ixz="0.000"
+               iyy="0.001" iyz="0.000" izz="0.001"/>
+    </inertial>
+
+    <collision name="wheel_right_collision">
+      <origin xyz="0.0 -0.144 0.023" rpy="-1.57 0 0"/>
+      <geometry>
+        <cylinder radius="0.033" length="0.018"/>
+      </geometry>
+      <surface>
+        <friction>
+          <ode>
+            <mu>100000.0</mu>
+            <mu2>100000.0</mu2>
+            <fdir1>0 0 0</fdir1>
+            <slip1>0.0</slip1>
+            <slip2>0.0</slip2>
+          </ode>
+        </friction>
+      </surface>
+    </collision>
+
+    <visual name="wheel_right_visual">
+      <origin xyz="0.0 -0.144 0.023" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://turtlebot3_common/meshes/tire.dae" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <!-- Caster wheels -->
+  <link name="caster_back_right_link">
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="0.00001" ixy="0.000" ixz="0.000"
+               iyy="0.00001" iyz="0.000" izz="0.00001"/>
+    </inertial>
+    <collision name="collision">
+      <geometry>
+        <sphere radius="0.005000"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <link name="caster_back_left_link">
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="0.00001" ixy="0.000" ixz="0.000"
+               iyy="0.00001" iyz="0.000" izz="0.00001"/>
+    </inertial>
+    <collision name="collision">
+      <geometry>
+        <sphere radius="0.005000"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- Camera link -->
+  <link name="camera_link">
+    <inertial>
+      <origin xyz="0.069 -0.047 0.107" rpy="0 0 0"/>
+      <mass value="0.035"/>
+      <inertia ixx="0.001" ixy="0.000" ixz="0.000"
+               iyy="0.001" iyz="0.000" izz="0.001"/>
+    </inertial>
+    <collision name="collision">
+      <origin xyz="0 0.047 -0.005" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.008 0.130 0.022"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- Joints -->
+  <joint name="base_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="0.0 0.0 0.010" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="wheel_left_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel_left_link"/>
+    <origin xyz="0.0 0.144 0.023" rpy="-1.57 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <joint name="wheel_right_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel_right_link"/>
+    <origin xyz="0.0 -0.144 0.023" rpy="-1.57 0 0"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <joint name="caster_back_right_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="caster_back_right_link"/>
+    <origin xyz="-0.177 -0.064 -0.004" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="caster_back_left_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="caster_back_left_link"/>
+    <origin xyz="-0.177 0.064 -0.004" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="lidar_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="scan"/>
+    <origin xyz="-0.064 0 0.121" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="camera_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="camera_link"/>
+    <origin xyz="0.064 -0.065 0.094" rpy="0 0 0"/>
+  </joint>
+
+  <joint name="imu_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="imu_link"/>
+    <origin xyz="0 0 0.068" rpy="0 0 0"/>
+  </joint>
+
+  <gazebo>
+    <plugin name="turtlebot3_diff_drive" filename="libgazebo_ros_diff_drive.so">
+      <update_rate>30</update_rate>
+      <ros>
+        <namespace>${ns}</namespace>
+      </ros>
+
+      <left_joint>wheel_left_joint</left_joint>
+      <right_joint>wheel_right_joint</right_joint>
+
+      <wheel_separation>0.287</wheel_separation>
+      <wheel_diameter>0.066</wheel_diameter>
+
+      <publish_odom_tf>true</publish_odom_tf>
+
+      <odometry_frame>odom</odometry_frame>
+      <robot_base_frame>base_footprint</robot_base_frame>
+
+      <!-- Topic to publish odometry message on (will be namespaced automatically) -->
+      <odometry_topic>odom</odometry_topic>
+    </plugin>
+  </gazebo>
+
+  <gazebo>
+    <plugin name="turtlebot3_joint_state" filename="libgazebo_ros_joint_state_publisher.so">
+      <ros>
+        <remapping>~/out:=joint_states</remapping>
+      </ros>
+      <update_rate>30</update_rate>
+      <joint_name>wheel_left_joint</joint_name>
+      <joint_name>wheel_right_joint</joint_name>
+    </plugin>
+  </gazebo>
+
+  <!-- IMU sensor -->
+  <gazebo reference="imu_link">
+    <sensor name="tb3_imu" type="imu">
+      <always_on>true</always_on>
+      <update_rate>200</update_rate>
+      <imu>
+        <angular_velocity>
+          <x>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>2e-4</stddev>
+            </noise>
+          </x>
+          <y>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>2e-4</stddev>
+            </noise>
+          </y>
+          <z>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>2e-4</stddev>
+            </noise>
+          </z>
+        </angular_velocity>
+        <linear_acceleration>
+          <x>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>1.7e-2</stddev>
+            </noise>
+          </x>
+          <y>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>1.7e-2</stddev>
+            </noise>
+          </y>
+          <z>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>1.7e-2</stddev>
+            </noise>
+          </z>
+        </linear_acceleration>
+      </imu>
+      <plugin name="turtlebot3_imu" filename="libgazebo_ros_imu_sensor.so">
+        <initial_orientation_as_reference>false</initial_orientation_as_reference>
+        <ros>
+          <remapping>~/out:=imu</remapping>
+        </ros>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+  <!-- Lidar sensor -->
+  <gazebo reference="scan">
+    <sensor name="hls_lfcd_lds" type="ray">
+      <always_on>true</always_on>
+      <visualize>true</visualize>
+      <pose>-0.064 0 0.15 0 0 0</pose>
+      <update_rate>5</update_rate>
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>360</samples>
+            <resolution>1.000000</resolution>
+            <min_angle>0.000000</min_angle>
+            <max_angle>6.280000</max_angle>
+          </horizontal>
+        </scan>
+        <range>
+          <min>0.120000</min>
+          <max>1.0</max>
+          <resolution>0.015000</resolution>
+        </range>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.01</stddev>
+        </noise>
+      </ray>
+      <plugin name="turtlebot3_laserscan" filename="libgazebo_ros_ray_sensor.so">
+        <ros>
+          <remapping>~/out:=scan</remapping>
+        </ros>
+        <output_type>sensor_msgs/LaserScan</output_type>
+        <frame_name>scan</frame_name>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+  <!-- Camera sensor -->
+  <gazebo reference="camera_link">
+    <sensor name="intel_realsense_r200_depth" type="depth">
+      <always_on>1</always_on>
+      <update_rate>5</update_rate>
+      <pose>0.064 -0.047 0.107 0 0 0</pose>
+      <camera name="realsense_depth_camera">
+        <horizontal_fov>1.047</horizontal_fov>
+        <image>
+          <width>640</width>
+          <height>480</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.001</near>
+          <far>5.0</far>
+        </clip>
+      </camera>
+      <plugin name="intel_realsense_r200_depth_driver" filename="libgazebo_ros_camera.so">
+        <camera_name>intel_realsense_r200_depth</camera_name>
+        <frame_name>camera_depth_frame</frame_name>
+        <hack_baseline>0.07</hack_baseline>
+        <min_depth>0.001</min_depth>
+        <max_depth>5.0</max_depth>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+</robot>
