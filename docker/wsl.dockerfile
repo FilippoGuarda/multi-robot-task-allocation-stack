@@ -33,6 +33,7 @@ RUN apt-get update && apt-get install -y \
     ros-humble-nav2-simple-commander \ 
     ros-humble-rqt-tf-tree \
     ros-humble-topic-tools \
+    ros-humble-robot-localization \
     && rm -rf /var/lib/apt/lists/* 
 
 # Python setup
