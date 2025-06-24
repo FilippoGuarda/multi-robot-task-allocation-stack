@@ -51,7 +51,7 @@ def generate_launch_description():
         pose = {
             'x': str(positions[i][0]),
             'y': str(positions[i][1]),
-            'z': '0.01',
+            'z': '0.00',
             'R': '0.00',
             'P': '0.00',
             'Y': '0.00'
