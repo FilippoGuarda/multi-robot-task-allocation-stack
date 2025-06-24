@@ -12,6 +12,7 @@ from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 from launch.conditions import IfCondition
 
+ROBOT_POSITIONS = []
 
 def parse_arguments(argv):
     """Parse launch arguments"""
@@ -23,7 +24,6 @@ def parse_arguments(argv):
                 args.append(f"-{parsed_arg[0]}")
                 args.append(parsed_arg[1][1:])
     return args
-
 
 def get_scenario_file_from_arguments(arguments):
     """Parse scenario file from command line arguments"""
@@ -37,22 +37,36 @@ def get_robot_positions(file):
     """Load robot starting positions from scenario file"""
     with open(file, 'r') as f:
         scenario_setup = json.load(f) 
-    positions = [] 
+    positions = []
     for robot in scenario_setup["agents"].values():
         print(f"Robot: {robot}")
-        positions.append(robot["start"])
-    return positions
+        position_dict = {
+            'x': float(robot["start"][0]),
+            'y': float(robot["start"][1]),
+            # Handle cases where yaw might not be included in the JSON.
+            'yaw': float(robot["start"]) if len(robot["start"]) > 2 else 0.0
+        }
+        
+        # Append the correctly formatted dictionary to the list.
+        positions.append(position_dict)
 
+    return positions
 
 def generate_robot_launches(context):
     """Generate launch includes for each robot"""
+    global ROBOT_POSITIONS
+    
     namespaces_str = context.launch_configurations.get('namespaces', '')
     namespaces = [ns.strip() for ns in namespaces_str.split(',') if ns.strip()]
     
     social_navigation_dir = get_package_share_directory('social_navigation')
     
     robot_launches = []
-    for namespace in namespaces:
+    for i, namespace in enumerate(namespaces):
+        # Get initial pose for this robot (default to origin if not available)
+        
+        initial_pose = ROBOT_POSITIONS[i]
+        
         robot_launch = IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 os.path.join(social_navigation_dir, 'launch', 'single_robot_nav_launch.py')
@@ -62,33 +76,37 @@ def generate_robot_launches(context):
                 'use_sim_time': LaunchConfiguration('use_sim_time').perform(context),
                 'params_file': LaunchConfiguration('params_file').perform(context),
                 'autostart': LaunchConfiguration('autostart').perform(context),
+                'initial_pose_x': str(initial_pose['x']),
+                'initial_pose_y': str(initial_pose['y']),
+                'initial_pose_yaw': str(initial_pose['yaw']),
             }.items()
         )
         robot_launches.append(robot_launch)
     
     return robot_launches
 
-
 def generate_launch_description():
+    global ROBOT_POSITIONS
+    
     # Parse scenario file if provided
     arguments = parse_arguments(sys.argv)
-    robot_names = ['robot1', 'robot2']  # Default
+    robot_names = ["robot1", "robot2", "robot3", "robot4", "robot5", "robot6"]  # Default
     
     if arguments:
         try:
             scenario_file = get_scenario_file_from_arguments(arguments)
-            positions = get_robot_positions(scenario_file)
-            robot_names = [f'robot{i + 1}' for i in range(len(positions))]
-        except:
-            print("Could not parse scenario file, using default robot names")
+            ROBOT_POSITIONS = get_robot_positions(scenario_file)
+            robot_names = [f'robot{i + 1}' for i in range(len(ROBOT_POSITIONS))]
+            print(f"Loaded {len(ROBOT_POSITIONS)} robot positions from scenario file")
+        except Exception as e:
+            print(f"Could not parse scenario file: {e}, using default robot names and positions")
+            ROBOT_POSITIONS = []
     
     # Package directories
-    bringup_dir = get_package_share_directory('nav2_bringup')
     social_navigation_dir = get_package_share_directory('social_navigation')
     social_navigation_config_dir = os.path.join(social_navigation_dir, 'configs')
     
     # Launch configuration variables
-    namespaces = LaunchConfiguration('namespaces')
     map_yaml_file = LaunchConfiguration('map')
     use_sim_time = LaunchConfiguration('use_sim_time')
     params_file = LaunchConfiguration('params_file')
@@ -131,7 +149,7 @@ def generate_launch_description():
     
     declare_rviz_config_file_cmd = DeclareLaunchArgument(
         'rviz_config_file',
-        default_value=os.path.join(social_navigation_config_dir, 'rviz_config.rviz'),
+        default_value=os.path.join(social_navigation_config_dir, 'shared_costmap_rviz.rviz'),
         description='Full path to the RVIZ config file to use'
     )
     
@@ -156,7 +174,6 @@ def generate_launch_description():
     # Set environment variable for TurtleBot3
     env_cmd = SetEnvironmentVariable(name='TURTLEBOT3_MODEL', value='waffle')
     
-    
     # Common nodes - Map server (single, not namespaced)
     map_server_node = Node(
         package='nav2_map_server',
@@ -180,18 +197,6 @@ def generate_launch_description():
             'autostart': ParameterValue(autostart, value_type=bool),
             'node_names': ['map_server']
         }]
-    )
-    
-    # Include the standalone costmap launch file
-    standalone_costmap_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(get_package_share_directory('multi_robot_costmap_plugin'), 
-                        'launch', 'standalone_costmap.launch.py')
-        ),
-        launch_arguments={
-            'use_sim_time': use_sim_time,
-            'autostart': autostart
-        }.items()
     )
     
     # RViz
@@ -224,7 +229,6 @@ def generate_launch_description():
     # Add common nodes
     ld.add_action(map_server_node)
     ld.add_action(map_lifecycle_manager)
-    ld.add_action(standalone_costmap_launch)
     
     # Add individual robot launches
     ld.add_action(OpaqueFunction(function=generate_robot_launches))

@@ -19,9 +19,9 @@ amcl:
     do_beamskip: false
     global_frame_id: "map"
     lambda_short: 0.1
-    laser_likelihood_max_dist: 2.0
-    laser_max_range: 100.0
-    laser_min_range: -1.0
+    laser_likelihood_max_dist: 3.0
+    laser_max_range: 3.0
+    laser_min_range: 0.2
     laser_model_type: "likelihood_field"
     max_beams: 60
     max_particles: 2000
@@ -30,19 +30,20 @@ amcl:
     pf_err: 0.05
     pf_z: 0.99
     recovery_alpha_fast: 0.0
-    recovery_alpha_slow: 0.0
+    recovery_alpha_slow: 0.1
     resample_interval: 1
     robot_model_type: "nav2_amcl::DifferentialMotionModel"
     save_pose_rate: 0.5
     sigma_hit: 0.2
     tf_broadcast: true
+    tf_buffer_duration: 1.0
     transform_tolerance: 1.0
-    update_min_a: 0.2
-    update_min_d: 0.25
+    update_min_a: 0.1
+    update_min_d: 0.2
     z_hit: 0.5
     z_max: 0.05
     z_rand: 0.5
-    z_short: 0.05
+    z_short: 0.01
     scan_topic: scan
 
 bt_navigator:
@@ -50,13 +51,9 @@ bt_navigator:
     use_sim_time: True
     global_frame: map
     robot_base_frame: base_footprint
-    odom_topic: /odom
+    odom_topic: odom
     bt_loop_duration: 10
     default_server_timeout: 20
-    # 'default_nav_through_poses_bt_xml' and 'default_nav_to_pose_bt_xml' are use defaults:
-    # nav2_bt_navigator/navigate_to_pose_w_replanning_and_recovery.xml
-    # nav2_bt_navigator/navigate_through_poses_w_replanning_and_recovery.xml
-    # They can be set here or via a RewrittenYaml remap from a parent launch file to Nav2.
     plugin_lib_names:
       - nav2_compute_path_to_pose_action_bt_node
       - nav2_compute_path_through_poses_action_bt_node
@@ -118,31 +115,30 @@ controller_server:
   ros__parameters:
     use_sim_time: True
     controller_frequency: 20.0
+    costmap_update_timeout: 0.3
     min_x_velocity_threshold: 0.001
     min_y_velocity_threshold: 0.5
     min_theta_velocity_threshold: 0.001
     failure_tolerance: 0.3
-    progress_checker_plugin: "progress_checker"
-    goal_checker_plugins: ["general_goal_checker"] # "precise_goal_checker"
+    odom_topic: "odom"
+    progress_checker_plugins: ["progress_checker"]
+    goal_checker_plugins: ["goal_checker"]
     controller_plugins: ["FollowPath"]
 
-    # Progress checker parameters
+    # Parameters for the progress checker plugin
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
       required_movement_radius: 0.5
       movement_time_allowance: 10.0
-    # Goal checker parameters
-    #precise_goal_checker:
-    #  plugin: "nav2_controller::SimpleGoalChecker"
-    #  xy_goal_tolerance: 0.25
-    #  yaw_goal_tolerance: 0.25
-    #  stateful: True
-    general_goal_checker:
-      stateful: True
+      
+    # Parameters for the goal checker plugin
+    goal_checker:
       plugin: "nav2_controller::SimpleGoalChecker"
       xy_goal_tolerance: 0.25
       yaw_goal_tolerance: 0.25
-    # DWB parameters
+      stateful: True
+      
+    # Parameters for the DWB controller plugin
     FollowPath:
       plugin: "dwb_core::DWBLocalPlanner"
       debug_trajectory_details: True
@@ -154,8 +150,6 @@ controller_server:
       min_speed_xy: 0.0
       max_speed_xy: 0.26
       min_speed_theta: 0.0
-      # Add high threshold velocity for turtlebot 3 issue.
-      # https://github.com/ROBOTIS-GIT/turtlebot3_simulations/issues/75
       acc_lim_x: 2.5
       acc_lim_y: 0.0
       acc_lim_theta: 3.2
@@ -168,7 +162,7 @@ controller_server:
       sim_time: 1.7
       linear_granularity: 0.05
       angular_granularity: 0.025
-      transform_tolerance: 0.2
+      transform_tolerance: 0.3
       xy_goal_tolerance: 0.25
       trans_stopped_velocity: 0.25
       short_circuit_trajectory_evaluation: True
@@ -188,10 +182,12 @@ controller_server:
 local_costmap:
   local_costmap:
     ros__parameters:
+      transform_tolerance: 0.5
       update_frequency: 0.1
       publish_frequency: 2.0
       global_frame: odom
       robot_base_frame: base_footprint
+      map_topic: /map
       use_sim_time: True
       rolling_window: true
       width: 3
@@ -214,7 +210,7 @@ local_costmap:
         mark_threshold: 0
         observation_sources: scan
         scan:
-          topic: /scan
+          topic: scan 
           max_obstacle_height: 2.0
           clearing: True
           marking: True
@@ -223,40 +219,46 @@ local_costmap:
           raytrace_min_range: 0.0
           obstacle_max_range: 2.5
           obstacle_min_range: 0.0
-      static_layer:
-        plugin: "nav2_costmap_2d::StaticLayer"
-        map_subscribe_transient_local: True
-      always_send_full_costmap: True
+
+planner_server:
+  ros__parameters:
+    expected_planner_frequency: 20.0
+    use_sim_time: True
+    planner_plugins: ["GridBased"]
+    GridBased:
+      plugin: "nav2_smac_planner/SmacPlanner2D"
+      tolerance: 0.25
+      use_astar: false
+      allow_unknown: true
 
 global_costmap:
   global_costmap:
     ros__parameters:
+      transform_tolerance: 0.5
       update_frequency: 0.1
       publish_frequency: 1.0
       global_frame: map
+      map_topic: /map
       robot_base_frame: base_footprint
       use_sim_time: True
       robot_radius: 0.22
       resolution: 0.05
       track_unknown_space: true
-      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
-      obstacle_layer:
-        plugin: "nav2_costmap_2d::ObstacleLayer"
-        enabled: False
-        observation_sources: scan
-        scan:
-          topic: /scan
-          max_obstacle_height: 2.0
-          clearing: True
-          marking: True
-          data_type: "LaserScan"
-          raytrace_max_range: 3.0
-          raytrace_min_range: 0.0
-          obstacle_max_range: 2.5
-          obstacle_min_range: 0.0
+      # plugins: ["static_layer", "multi_robot_layer", "inflation_layer"]
+      plugins: ["static_layer", "inflation_layer"]
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: True
+      multi_robot_layer:
+        plugin: "multi_robot_costmap_plugin/FootprintAwareMultiRobotLayer"
+        enabled: True
+        # robot_namespaces: ["robot1", "robot2", "robot3", "robot4", "robot5", "robot6"]
+        robot_namespaces: ["robot1"]
+        obstacle_max_range: 2.5
+        obstacle_min_range: 0.3
+        global_frame: map
+        footprint_padding: 0.1
+        default_robot_radius: 0.3
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
@@ -266,8 +268,6 @@ global_costmap:
 map_server:
   ros__parameters:
     use_sim_time: True
-    # Overridden in launch by the "map" launch configuration or provided default value.
-    # To use in yaml, remove the default "map" value in the tb3_simulation_launch.py file & provide full path to map below.
     yaml_filename: "/home/colcon_ws/install/social_navigation/share/social_navigation/worlds/map_aws/my_map.yaml"
 
 map_saver:
@@ -277,18 +277,6 @@ map_saver:
     free_thresh_default: 0.25
     occupied_thresh_default: 0.65
     map_subscribe_transient_local: True
-
-planner_server:
-  ros__parameters:
-    expected_planner_frequency: 20.0
-    use_sim_time: True
-    planner_plugins: ["GridBased"]
-    GridBased:
-      plugin: "nav2_smac_planner/SmacPlanner2D"
-      # plugin: "nav2_navfn_planner/NavfnPlanner"
-      tolerance: 0.25
-      use_astar: false
-      allow_unknown: true
 
 smoother_server:
   ros__parameters:
@@ -318,7 +306,7 @@ behavior_server:
       plugin: "nav2_behaviors/AssistedTeleop"
     global_frame: odom
     robot_base_frame: base_footprint
-    transform_tolerance: 0.1
+    transform_tolerance: 0.3
     use_sim_time: true
     simulate_ahead_time: 2.0
     max_rotational_vel: 1.0
