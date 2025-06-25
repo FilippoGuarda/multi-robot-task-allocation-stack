@@ -23,10 +23,10 @@
   <link name="base_link">
     <inertial>
       <origin xyz="-0.064 0 0.048" rpy="0 0 0"/>
-      <mass value="1.0"/>
-      <inertia ixx="0.001" ixy="0.000" ixz="0.000"
-               iyy="0.001" iyz="0.000" izz="0.001"/>
-    </inertial>
+      <mass value="1.8"/> 
+      <inertia ixx="0.008" ixy="0.000" ixz="0.000"
+              iyy="0.011" iyz="0.000" izz="0.017"/>
+  </inertial>
 
     <collision name="base_collision">
       <origin xyz="-0.064 0 0.048" rpy="0 0 0"/>
@@ -62,7 +62,7 @@
     </inertial>
 
     <collision name="lidar_sensor_collision">
-      <origin xyz="0.012 0 0.01" rpy="0 0 0"/>
+      <origin xyz="0.012 0 -0.005" rpy="0 0 0"/>
       <geometry>
         <cylinder radius="0.0508" length="0.055"/>
       </geometry>
@@ -79,14 +79,14 @@
   <!-- Left wheel -->
   <link name="wheel_left_link">
     <inertial>
-      <origin xyz="0 0 0" rpy="0 1.5707 1.5707"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
       <mass value="0.1"/>
-      <inertia ixx="0.001" ixy="0.000" ixz="0.000"
-              iyy="0.001" iyz="0.000" izz="0.001"/>
-    </inertial>
+      <inertia ixx="0.00005" ixy="0.000" ixz="0.000"
+              iyy="0.00005" iyz="0.000" izz="0.00009"/>
+  </inertial>
 
     <collision name="wheel_left_collision">
-      <origin xyz="0 0 0" rpy="0 1.5707 1.5707"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
         <cylinder radius="0.033" length="0.018"/>
       </geometry>
@@ -103,14 +103,14 @@
   <!-- Right wheel -->
   <link name="wheel_right_link">
     <inertial>
-      <origin xyz="0 0 0" rpy="0 1.5707 1.5707"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
       <mass value="0.1"/>
-      <inertia ixx="0.001" ixy="0.000" ixz="0.000"
-              iyy="0.001" iyz="0.000" izz="0.001"/>
-    </inertial>
+      <inertia ixx="0.00005" ixy="0.000" ixz="0.000"
+              iyy="0.00005" iyz="0.000" izz="0.00009"/>
+  </inertial>
 
     <collision name="wheel_right_collision">
-      <origin xyz="0 0 0" rpy="0 1.5707 1.5707"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
         <cylinder radius="0.033" length="0.018"/>
       </geometry>
@@ -161,9 +161,9 @@
                iyy="0.001" iyz="0.000" izz="0.001"/>
     </inertial>
     <collision name="collision">
-      <origin xyz="0 0.047 -0.005" rpy="0 0 0"/>
+      <origin xyz="0 0.047 0.000" rpy="0 0 0"/>
       <geometry>
-        <box size="0.008 0.130 0.022"/>
+        <box size="0.008 0.130 0.002"/>
       </geometry>
     </collision>
   </link>
@@ -180,6 +180,7 @@
     <child link="wheel_left_link"/>
     <origin xyz="0.0 0.144 0.023" rpy="-1.57 0 0"/>
     <axis xyz="0 0 1"/>
+    <dynamics damping="0.1" friction="0.1"/>
   </joint>
 
   <joint name="wheel_right_joint" type="continuous">
@@ -187,18 +188,19 @@
     <child link="wheel_right_link"/>
     <origin xyz="0.0 -0.144 0.023" rpy="-1.57 0 0"/>
     <axis xyz="0 0 1"/>
+    <dynamics damping="0.1" friction="0.1"/>
   </joint>
 
   <joint name="caster_back_right_joint" type="fixed">
     <parent link="base_link"/>
     <child link="caster_back_right_link"/>
-    <origin xyz="-0.177 -0.064 -0.004" rpy="0 0 0"/>
+    <origin xyz="-0.177 -0.064 -0.005" rpy="0 0 0"/>
   </joint>
 
   <joint name="caster_back_left_joint" type="fixed">
     <parent link="base_link"/>
     <child link="caster_back_left_link"/>
-    <origin xyz="-0.177 0.064 -0.004" rpy="0 0 0"/>
+    <origin xyz="-0.177 0.064 -0.005" rpy="0 0 0"/> 
   </joint>
 
   <joint name="lidar_joint" type="fixed">
@@ -218,6 +220,45 @@
     <child link="imu_link"/>
     <origin xyz="0 0 0.068" rpy="0 0 0"/>
   </joint>
+
+
+  <gazebo reference="base_link">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <material>Gazebo/FlatBlack</material>
+  </gazebo>
+
+  <gazebo reference="wheel_left_link">
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+    <fdir1>1 0 0</fdir1>
+    <material>Gazebo/DarkGrey</material>
+  </gazebo>
+
+  <gazebo reference="wheel_right_link">
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+    <fdir1>1 0 0</fdir1>
+    <material>Gazebo/DarkGrey</material>
+  </gazebo>
+
+  <!-- Ensure casters have low friction for smooth movement -->
+  <gazebo reference="caster_back_right_link">
+    <mu1>0.01</mu1>
+    <mu2>0.01</mu2>
+    <material>Gazebo/FlatBlack</material>
+  </gazebo>
+
+  <gazebo reference="caster_back_left_link">
+    <mu1>0.01</mu1>
+    <mu2>0.01</mu2>
+    <material>Gazebo/FlatBlack</material>
+  </gazebo>
+
+  <gazebo reference="scan">
+    <material>Gazebo/RedTransparent</material>
+  </gazebo>
+  
 
   <gazebo>
     <plugin name="turtlebot3_diff_drive" filename="libgazebo_ros_diff_drive.so">
