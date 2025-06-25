@@ -79,8 +79,13 @@ rgazebo input_file:=/home/colcon_ws/src/social_navigation/social_navigation_py/s
 Note: After this step, the Gazebo environment should the robots (which are in the middle of blue circles). Upon start-up, the robot installation will occasionally fail. If this occurs, exit and rerun the above command.
 
 2. To launch the ROS2 navigation stack (to use its planners)
+
 ```
-rnav2
+ros2 launch social_navigation test_multi_robot_launch.py input_file:=<path_to_setup_file>
+```
+Example:
+```
+    ros2 launch social_navigation test_multi_robot_launch.py input_file:=/home/colcon_ws/src/social_navigation/social_navigation_py/social_navigation_py/robot_setup_6.json
 ```
 
 3. To start humans moving

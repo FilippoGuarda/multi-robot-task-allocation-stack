@@ -73,7 +73,9 @@ def generate_launch_description():
         'base_frame_id': [namespace, '/base_footprint'],
         'robot_base_frame': [namespace, '/base_footprint'], 
         'global_frame': [namespace, '/odom'],
-        'topic': ['/', namespace, '/scan']
+        'topic': ['/', namespace, '/scan'],
+        'costmap_topic': [namespace, '/local_costmap/costmap_raw'],
+        'footprint_topic': [namespace, '/local_costmap/published_footprint']
     }
     
     configured_params = RewrittenYaml(
@@ -130,7 +132,15 @@ def generate_launch_description():
         executable='bt_navigator',
         name='bt_navigator',
         output='screen',
-        parameters=[configured_params],
+        parameters=[configured_params_global_cost],
+        remappings=remappings)
+    
+    behavior_server_node = Node(
+        package='nav2_behaviors',
+        executable='behavior_server', 
+        name='behavior_server',
+        output='screen',
+        parameters=[configured_params_global_cost],
         remappings=remappings)
     
     lifecycle_manager_node = Node(
@@ -143,7 +153,8 @@ def generate_launch_description():
                          'amcl',
                          'controller_server',
                          'planner_server',
-                         #'bt_navigator'
+                         'behavior_server',
+                         'bt_navigator'
                          ]}])
     
     ld = LaunchDescription()
@@ -165,7 +176,8 @@ def generate_launch_description():
         amcl_node,
         controller_server_node,
         planner_server_node,
-        # bt_navigator_node,
+        behavior_server_node,
+        bt_navigator_node,
         lifecycle_manager_node
     ])
     
