@@ -34,6 +34,7 @@ RUN apt-get update && apt-get install -y \
     ros-humble-rqt-tf-tree \
     ros-humble-topic-tools \
     ros-humble-robot-localization \
+    ros-humble-nav2-msgs \
     && rm -rf /var/lib/apt/lists/* 
 
 # Python setup
