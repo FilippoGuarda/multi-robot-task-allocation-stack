@@ -42,17 +42,17 @@ RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.10
 RUN python3 -m pip install numpy
 
 # Python packages installation (combined for efficiency)
-RUN pip3 install -U setuptools && \
-    pip3 install polytope numpy cvxpy jax jaxlib testresources cvxpylayers gurobipy
+# RUN pip3 install -U setuptools && \
+#     pip3 install polytope numpy cvxpy jax jaxlib testresources cvxpylayers gurobipy
 
 RUN python3 -m pip install setuptools==58.2.0 && \
     python3 -m pip install numpy==1.26.4 matplotlib
 
 # JAX with CUDA support (ensure WSL2 CUDA drivers are installed)
-RUN python3 -m pip install --upgrade "jax[cuda11_pip]==0.4.25" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html jaxlib==0.4.25
+# RUN python3 -m pip install --upgrade "jax[cuda11_pip]==0.4.25" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html jaxlib==0.4.25
 
-RUN python3 -m pip install matplotlib==3.7.1 pillow==9.5.0 kiwisolver==1.4.4 polytope && \
-    python3 -m pip install myst-parser sphinx sphinx-rtd-theme
+# RUN python3 -m pip install matplotlib==3.7.1 pillow==9.5.0 kiwisolver==1.4.4 polytope && \
+#     python3 -m pip install myst-parser sphinx sphinx-rtd-theme
 
 # Environment setup
 RUN echo "export PYTHONPATH=\$PYTHONPATH:/home/colcon_ws/src/social_navigation/src" >> ~/.bashrc && \
@@ -62,10 +62,10 @@ RUN echo "export PYTHONPATH=\$PYTHONPATH:/home/colcon_ws/src/social_navigation/s
 
 WORKDIR /home/
 
-# Build lightsfm
-RUN git clone https://github.com/robotics-upo/lightsfm.git
-WORKDIR /home/lightsfm
-RUN make && make install
+# # Build lightsfm
+# RUN git clone https://github.com/robotics-upo/lightsfm.git
+# WORKDIR /home/lightsfm
+# RUN make && make install
 
 # # update gazebo version for wsl2 compatibility
 # RUN apt-get remove -y ros-*-gazebo*
@@ -82,13 +82,13 @@ RUN make && make install
 # RUN apt-get install -y ros-humble-ros-gzgarden
 
 # Setup SMrTa
-ADD colcon_ws/src/social_navigation/social_navigation_py/social_navigation_py/SMrTa /home/colcon_ws/src/social_navigation/social_navigation_py/social_navigation_py/SMrTa
-WORKDIR /home/colcon_ws/src/social_navigation/social_navigation_py/social_navigation_py/SMrTa
-RUN pip3 install -r requirements.txt && pip3 install .
+# ADD colcon_ws/src/social_navigation/social_navigation_py/social_navigation_py/SMrTa /home/colcon_ws/src/social_navigation/social_navigation_py/social_navigation_py/SMrTa
+# WORKDIR /home/colcon_ws/src/social_navigation/social_navigation_py/social_navigation_py/SMrTa
+# RUN pip3 install -r requirements.txt && pip3 install .
 
-WORKDIR /home/colcon_ws/src/social_navigation/social_navigation_py/social_navigation_py/SMrTa/bitwuzla
-RUN pip3 install . && \
-    echo "export PYTHONPATH=\$PYTHONPATH:$(pwd)/build/src/api/python" >> ~/.bashrc
+# WORKDIR /home/colcon_ws/src/social_navigation/social_navigation_py/social_navigation_py/SMrTa/bitwuzla
+# RUN pip3 install . && \
+#     echo "export PYTHONPATH=\$PYTHONPATH:$(pwd)/build/src/api/python" >> ~/.bashrc
 
 WORKDIR /home/colcon_ws
 
