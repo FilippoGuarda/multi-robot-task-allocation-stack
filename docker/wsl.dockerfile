@@ -58,14 +58,14 @@ RUN python3 -m pip install setuptools==58.2.0 && \
 RUN echo "export PYTHONPATH=\$PYTHONPATH:/home/colcon_ws/src/social_navigation/src" >> ~/.bashrc && \
     echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc && \
     echo "source /home/colcon_ws/install/local_setup.bash" >> ~/.bashrc && \
-    echo "source source /usr/share/gazebo/setup.sh" >> ~/.bashrc
+    echo "source /usr/share/gazebo/setup.sh" >> ~/.bashrc
 
 WORKDIR /home/
 
 # # Build lightsfm
-# RUN git clone https://github.com/robotics-upo/lightsfm.git
-# WORKDIR /home/lightsfm
-# RUN make && make install
+RUN git clone https://github.com/robotics-upo/lightsfm.git
+WORKDIR /home/lightsfm
+RUN make && make install
 
 # # update gazebo version for wsl2 compatibility
 # RUN apt-get remove -y ros-*-gazebo*
@@ -82,13 +82,13 @@ WORKDIR /home/
 # RUN apt-get install -y ros-humble-ros-gzgarden
 
 # Setup SMrTa
-# ADD colcon_ws/src/social_navigation/social_navigation_py/social_navigation_py/SMrTa /home/colcon_ws/src/social_navigation/social_navigation_py/social_navigation_py/SMrTa
-# WORKDIR /home/colcon_ws/src/social_navigation/social_navigation_py/social_navigation_py/SMrTa
-# RUN pip3 install -r requirements.txt && pip3 install .
+ADD colcon_ws/src/social_navigation/social_navigation_py/social_navigation_py/SMrTa /home/colcon_ws/src/social_navigation/social_navigation_py/social_navigation_py/SMrTa
+WORKDIR /home/colcon_ws/src/social_navigation/social_navigation_py/social_navigation_py/SMrTa
+RUN pip3 install -r requirements.txt && pip3 install .
 
-# WORKDIR /home/colcon_ws/src/social_navigation/social_navigation_py/social_navigation_py/SMrTa/bitwuzla
-# RUN pip3 install . && \
-#     echo "export PYTHONPATH=\$PYTHONPATH:$(pwd)/build/src/api/python" >> ~/.bashrc
+WORKDIR /home/colcon_ws/src/social_navigation/social_navigation_py/social_navigation_py/SMrTa/bitwuzla
+RUN pip3 install . && \
+    echo "export PYTHONPATH=\$PYTHONPATH:$(pwd)/build/src/api/python" >> ~/.bashrc
 
 WORKDIR /home/colcon_ws
 
