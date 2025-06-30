@@ -65,8 +65,13 @@ def generate_robot_launches(context):
     for i, namespace in enumerate(namespaces):
         # Get initial pose for this robot (default to origin if not available)
         
-        initial_pose = ROBOT_POSITIONS[i]
-        
+        try:
+            initial_pose = ROBOT_POSITIONS[i]
+        except (IndexError, KeyError):
+            error_msg = f"Missing position input for robot {i} in namespace '{namespace}'. Use input_file:=</positions/file/path.json> at launch"
+            print(f"[ERROR] {error_msg}")
+            sys.exit(1) 
+
         robot_launch = IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 os.path.join(social_navigation_dir, 'launch', 'single_robot_nav_launch.py')
@@ -105,6 +110,7 @@ def generate_launch_description():
     # Package directories
     social_navigation_dir = get_package_share_directory('social_navigation')
     social_navigation_config_dir = os.path.join(social_navigation_dir, 'configs')
+    mrgc_pkg_dir = get_package_share_directory('multi_robot_costmap_plugin')
     
     # Launch configuration variables
     map_yaml_file = LaunchConfiguration('map')
@@ -115,6 +121,7 @@ def generate_launch_description():
     use_rviz = LaunchConfiguration('use_rviz')
     use_simulator = LaunchConfiguration('use_simulator')
     headless = LaunchConfiguration('headless')
+    mrgc_config_file = LaunchConfiguration('mrgc_config_file')
     
     # Declare launch arguments
     declare_namespace_cmd = DeclareLaunchArgument(
@@ -170,6 +177,12 @@ def generate_launch_description():
         default_value='False',
         description='Run Gazebo in headless mode'
     )
+
+    declare_mrgc_config_file_cmd = DeclareLaunchArgument(
+        'mrgc_config_file',
+        default_value=os.path.join(mrgc_pkg_dir, 'config', 'multi_robot_costmap.yaml'),
+        description='Path to config file'
+    )
     
     # Set environment variable for TurtleBot3
     env_cmd = SetEnvironmentVariable(name='TURTLEBOT3_MODEL', value='waffle')
@@ -184,6 +197,19 @@ def generate_launch_description():
             'use_sim_time': ParameterValue(use_sim_time, value_type=bool),
             'yaml_filename': map_yaml_file
         }]
+    )
+
+    fusion_node = Node(
+        package='multi_robot_costmap_plugin',
+        executable='global_costmap_fusion_node',
+        name='global_costmap_fusion',
+        output='screen',
+        parameters=[
+            LaunchConfiguration('mrgc_config_file'),
+            {'use_sim_time': LaunchConfiguration('use_sim_time')}
+        ],
+        remappings=[
+        ]
     )
     
     # Lifecycle manager for map server
@@ -222,6 +248,7 @@ def generate_launch_description():
     ld.add_action(declare_use_rviz_cmd)
     ld.add_action(declare_use_simulator_cmd)
     ld.add_action(declare_headless_cmd)
+    ld.add_action(declare_mrgc_config_file_cmd)
     
     # Add environment variable
     ld.add_action(env_cmd)
@@ -229,6 +256,7 @@ def generate_launch_description():
     # Add common nodes
     ld.add_action(map_server_node)
     ld.add_action(map_lifecycle_manager)
+    # ld.add_action(fusion_node)
     
     # Add individual robot launches
     ld.add_action(OpaqueFunction(function=generate_robot_launches))
