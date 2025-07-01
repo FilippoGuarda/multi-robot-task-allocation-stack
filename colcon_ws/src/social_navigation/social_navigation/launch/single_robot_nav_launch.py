@@ -75,7 +75,8 @@ def generate_launch_description():
         'global_frame': [namespace, '/odom'],
         'topic': ['/', namespace, '/scan'],
         'costmap_topic': [namespace, '/local_costmap/costmap_raw'],
-        'footprint_topic': [namespace, '/local_costmap/published_footprint']
+        'footprint_topic': [namespace, '/local_costmap/published_footprint'],
+        'robot_namespace': namespace
     }
     
     configured_params = RewrittenYaml(
@@ -124,7 +125,16 @@ def generate_launch_description():
         executable='planner_server',
         name='planner_server',
         output='screen',
-        parameters=[configured_params_global_cost],
+        parameters=[
+            configured_params_global_cost
+            # {
+            # 'multi_robot_layer.robot_namespace': namespace,
+            # 'multi_robot_layer.enabled': True,
+            # 'multi_robot_layer.shared_grid_topic': '/shared_obstacles_grid',
+            # 'multi_robot_layer.robot_radius': 0.3,
+            # 'multi_robot_layer.exclusion_buffer': 0.5
+            # }
+        ],
         remappings=remappings)
     
     bt_navigator_node = Node(

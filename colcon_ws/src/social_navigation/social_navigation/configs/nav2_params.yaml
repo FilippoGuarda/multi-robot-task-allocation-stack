@@ -251,15 +251,11 @@ global_costmap:
         map_subscribe_transient_local: True
       multi_robot_layer:
         plugin: "multi_robot_costmap_plugin/MultiRobotLayer"
-        enabled: True
-        shared_grid_topic: /shared_obstacles_grid
-        robot_namespaces: ["robot1", "robot2", "robot3", "robot4", "robot5", "robot6"]
-        # robot_namespaces: ["robot1"]
-        obstacle_max_range: 2.5
-        obstacle_min_range: 0.3
-        global_frame: map
-        footprint_padding: 0.1
-        default_robot_radius: 0.3
+        enabled: true
+        shared_grid_topic: "/shared_obstacles_grid"
+        robot_namespace: "ROBOT_NAMESPACE_PLACEHOLDER"  # Will be substituted
+        robot_radius: 0.3
+        exclusion_buffer: 0.5
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
@@ -271,7 +267,7 @@ behavior_server:
     costmap_topic: local_costmap/costmap_raw
     footprint_topic: local_costmap/published_footprint
     cycle_frequency: 10.0
-    behavior_plugins: ["spin", "backup", "wait"]  # Note: parameter name changed
+    behavior_plugins: ["spin", "backup", "wait"]  
     spin:
       plugin: "nav2_behaviors::Spin"
     backup:
